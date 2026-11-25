@@ -21,7 +21,7 @@ Training stays out of `slm-setup`. Delivery back into the bridge waits until a l
 ## What you get
 
 1. **Lab UI** — concept map, searchable SFT dataset, GEEKOM / RDNA profiles.
-2. **Corpus** — `data/drivine_instruct.json` (API Q&A, views, Cypher, graph RAG).
+2. **Corpus** — `data/drivine_instruct.json` (100 instruction pairs: API Q&A, Nest, stamps, Cypher compiler, Oracle, views, graph RAG).
 3. **Python lab** — ROCm-friendly PEFT/TRL LoRA scripts + optional Drivine SQLite seed.
 
 ## Quick start (UI)

@@ -431,5 +431,173 @@
     "topic": "prompting",
     "instruction": "User asks: create a view to load a repo issue with author, labels and comments.",
     "response": "Define Issue, Person, Label and Comment fragments. Create IssueThread GraphView with Root Issue, Relationship AUTHOR to Person, LABELED to Label list, and HAS_COMMENT to Comment list. loadAll/load by issue id through the DSL. Add indexes on Issue.number and any lookup keys. This matches Drivine's one-statement view loading style used in their benchmarks."
+  },
+  {
+    "id": "d073",
+    "topic": "nest",
+    "instruction": "How do I wire Drivine into NestJS?",
+    "response": "Install @liberation-data/drivine and enable experimentalDecorators plus emitDecoratorMetadata. Import Drivine's Nest module, configure the datasource (or env DATABASE_*), then inject the graph object manager with @InjectGraphObjectManager(). Nest is optional—plain TypeScript works without it."
+  },
+  {
+    "id": "d074",
+    "topic": "nest",
+    "instruction": "Show a NestJS provider using @InjectGraphObjectManager to load a PersonCareer view.",
+    "response": "import { Injectable } from '@nestjs/common';\nimport { InjectGraphObjectManager, GraphObjectManager } from '@liberation-data/drivine';\nimport { PersonCareer } from './person-career';\n\n@Injectable()\nexport class CareerService {\n  constructor(\n    @InjectGraphObjectManager() private readonly gom: GraphObjectManager,\n  ) {}\n\n  leads() {\n    return this.gom.loadAll(PersonCareer, (q) => ({\n      where: q.person.bio.containsIgnoreCase('lead'),\n    }));\n  }\n}"
+  },
+  {
+    "id": "d075",
+    "topic": "stamps",
+    "instruction": "What is @NodeStamp / optimistic locking in Drivine?",
+    "response": "A NodeStamp records a version token on the node. On save, Drivine refuses the write if the node changed since it was loaded. The stamp format is shared across TypeScript, Python, and drivine4j so a graph written in one language can be stamped and checked from another."
+  },
+  {
+    "id": "d076",
+    "topic": "stamps",
+    "instruction": "What happens if two clients save the same stamped node?",
+    "response": "The first save that commits wins and advances the stamp. The second save fails optimistic-lock validation instead of silently overwriting. Reload the view, merge, and save again. Do not strip stamps from fragments just to force a write."
+  },
+  {
+    "id": "d077",
+    "topic": "cypher-compiler",
+    "instruction": "Which engines run Cypher as written versus compile it to SQL?",
+    "response": "Neo4j, Memgraph, FalkorDB, and Amazon Neptune (via PersistenceManager) run Cypher as written. On Postgres, Oracle (SQL/PGQ), and SQLite, Drivine compiles Cypher to SQL over node and edge tables and returns the same row shape."
+  },
+  {
+    "id": "d078",
+    "topic": "cypher-compiler",
+    "instruction": "What happens when the Cypher compiler does not support a clause?",
+    "response": "Unsupported Cypher is refused by name before anything is sent to the store. That fails fast instead of producing a wrong SQL translation. Rewrite with supported path patterns or keep that workload on a native Cypher engine."
+  },
+  {
+    "id": "d079",
+    "topic": "cypher-compiler",
+    "instruction": "Do variable-length relationships compile on Postgres and Oracle?",
+    "response": "Yes. Variable-length relationships and quantified path patterns are in the compiler's supported set. Graph Bench shows Postgres and Oracle can walk large path sets via indexes; node materialization cost dominates, not the hop walk itself."
+  },
+  {
+    "id": "d080",
+    "topic": "cypher-compiler",
+    "instruction": "Are Cypher writes atomic when compiled to SQL?",
+    "response": "A statement that writes is applied whole or not at all. Treat PersistenceManager Cypher writes as one unit of work; do not assume partial success across nodes and edges if the statement fails midway."
+  },
+  {
+    "id": "d081",
+    "topic": "oracle",
+    "instruction": "Does Oracle execute Cypher natively with Drivine?",
+    "response": "No. Oracle has no Cypher engine in this path. Drivine compiles Cypher to SQL/PGQ over the shared node/edge layout. You need Oracle Database 23ai or later and drivine[oracle] (thin python-oracledb). Full-text in containers needs the full Oracle Free image."
+  },
+  {
+    "id": "d082",
+    "topic": "oracle",
+    "instruction": "How should I choose between Neo4j and Oracle for a Drivine app?",
+    "response": "Prefer Neo4j/Memgraph/FalkorDB when you want native Cypher and index-free adjacency. Prefer Oracle or Postgres when SQL ops already own the data plane and you can accept compiled Cypher. Keep views portable so you can switch engines without rewriting the object model."
+  },
+  {
+    "id": "d083",
+    "topic": "saves",
+    "instruction": "What null policies and replace modes matter on Drivine save?",
+    "response": "save / saveAll accept null policies and replace modes that control whether null properties clear stored values and whether relationship collections replace or merge. Pick the mode that matches your view: accidental null clears and full collection replace are common sources of data loss."
+  },
+  {
+    "id": "d084",
+    "topic": "saves",
+    "instruction": "When should I use patch instead of save in Drivine?",
+    "response": "Use patch for partial property updates when you do not intend to rewrite the whole fragment or replace relationship collections. Use save when the view is the source of truth for the loaded neighbourhood. Prefer relate/unrelate helpers for edge-only changes."
+  },
+  {
+    "id": "d085",
+    "topic": "schema",
+    "instruction": "How does Drivine declare vector and full-text indexes?",
+    "response": "Declare range, uniqueness, vector, and full-text indexes on your fragment/view classes. At startup Drivine enforces them and can detect drift against the live store. Application code stays portable; engine-specific index DDL is not scattered through services."
+  },
+  {
+    "id": "d086",
+    "topic": "schema",
+    "instruction": "What is schema drift detection in Drivine?",
+    "response": "On startup Drivine compares class-declared indexes and constraints to the store. Drift means the live schema does not match the model. Fix by aligning declarations or applying migrations before treating loadNearest / uniqueness guarantees as valid."
+  },
+  {
+    "id": "d087",
+    "topic": "model-json",
+    "instruction": "What is .drivine/model.json used for?",
+    "response": "Each client writes the object model to .drivine/model.json (drivine4j at build, Python from stubs, TypeScript via npx drivine model). Drivine Studio reads it so you can drag a view, see the Cypher, and inspect results without guessing the generated statement."
+  },
+  {
+    "id": "d088",
+    "topic": "studio",
+    "instruction": "Can Drivine Studio run Cypher on Postgres and Oracle?",
+    "response": "Yes. Studio can show compiled SQL-backed results on Postgres and Oracle as well as native Cypher engines. It is read-only unless you explicitly allow a connection to write. Use it to verify what a view's loadAll would emit."
+  },
+  {
+    "id": "d089",
+    "topic": "typescript",
+    "instruction": "Write a TypeScript Person NodeFragment and PersonCareer GraphView.",
+    "response": "@NodeFragment({ labels: ['Person'] })\nexport class Person {\n  @NodeId() uuid: string;\n  name: string;\n  bio?: string;\n}\n\n@GraphView()\nexport class PersonCareer {\n  @Root() person: Person;\n\n  @GraphRelationship({ type: 'WORKS_FOR', target: () => WorkHistory })\n  employmentHistory: WorkHistory[] = [];\n}"
+  },
+  {
+    "id": "d090",
+    "topic": "jvm",
+    "instruction": "Write a Kotlin Person fragment and PersonCareer view for drivine4j.",
+    "response": "@NodeFragment(labels = [\"Person\"])\ndata class Person(\n    @NodeId val uuid: String,\n    val name: String,\n    val bio: String?\n)\n\n@GraphView\ndata class PersonCareer(\n    @Root val person: Person,\n    @GraphRelationship(type = \"WORKS_FOR\")\n    val employmentHistory: List<WorkHistory>\n)"
+  },
+  {
+    "id": "d091",
+    "topic": "jvm",
+    "instruction": "How does drivine4j generate its typed query DSL?",
+    "response": "drivine4j uses KSP to generate DSL references from annotated Kotlin/Java models. Spring Boot auto-configuration and testcontainers are available. Embabel's graph client path is drivine4j—pin the Maven artifact version listed on drivine.org."
+  },
+  {
+    "id": "d092",
+    "topic": "query-dsl",
+    "instruction": "How do keyset paging and index advice show up in the Drivine DSL?",
+    "response": "The typed DSL accepts filters, ordering, keyset paging, and index advice on loads, counts, deletes, patches, and grouped reads. Prefer keyset paging over fragile OFFSET for large result sets, and pass index advice when you know which index the engine should prefer."
+  },
+  {
+    "id": "d093",
+    "topic": "performance",
+    "instruction": "Why does Drivine emphasize one statement per load or save?",
+    "response": "There is no lazy loading and no session cache. A view with its relationships loads in one statement; a save is one statement too. That avoids N+1 relationship queries and keeps latency predictable across Neo4j, Memgraph, FalkorDB, Postgres, and Oracle."
+  },
+  {
+    "id": "d094",
+    "topic": "performance",
+    "instruction": "What does Graph Bench show about Postgres and Oracle path walks?",
+    "response": "On a graph of about 1.1M nodes and 4.5M relationships, Postgres and Oracle walked paths through B-tree indexes with lower per-path walk cost than Neo4j's pointers out to large path counts; reading nodes along the path dominated their cost. Use those numbers as orientation, not as a blanket engine ranking."
+  },
+  {
+    "id": "d095",
+    "topic": "testing",
+    "instruction": "How do I run Drivine tests against a local Neo4j instead of testcontainers?",
+    "response": "CI typically uses a container per datasource. While iterating, set USE_LOCAL_NEO4J=true (or the documented local flag for your client) so tests point at your own instance. Keep containerized CI as the green path before merging."
+  },
+  {
+    "id": "d096",
+    "topic": "persistence-manager",
+    "instruction": "Show the intent of a multi-hop Cypher query via PersistenceManager.",
+    "response": "Use PersistenceManager when views cannot express the path cleanly, e.g. MATCH p = (a)-[:KNOWS*]->(:Character {name: 'Jesse'})-[:APPEARS_IN]->(e {title: 'Pilot'}) WHERE a.name = 'Hank' RETURN [n IN nodes(p) | coalesce(n.name, n.title)]. On Postgres/Oracle the same Cypher is compiled; on Neo4j it runs natively."
+  },
+  {
+    "id": "d097",
+    "topic": "embabel",
+    "instruction": "How does Drivine relate to Embabel?",
+    "response": "drivine4j is the graph client used by Embabel. Graph RAG stores and agent templates that need a portable graph layer sit on drivine4j. For Embabel coding tasks prefer official embabel repos; for Drivine API facts prefer drivine.org and the language client you are targeting."
+  },
+  {
+    "id": "d098",
+    "topic": "config",
+    "instruction": "What env vars matter for a SQLite Drivine Python app?",
+    "response": "DATABASE_TYPE=SQLITE and DATABASE_NAME=./graph.db (a file path). No host, port, user, or password. Avoid :memory: with pooled connections—each connection would get a separate empty database. Install with pip install \"drivine[sqlite]\"."
+  },
+  {
+    "id": "d099",
+    "topic": "edge-cases",
+    "instruction": "Should I put every relationship on one GraphView for convenience?",
+    "response": "No. Compose focused views per use case. A kitchen-sink view forces every load to hydrate unused neighbourhoods, hurts latency, and couples screens. Share NodeFragments; vary GraphViews."
+  },
+  {
+    "id": "d100",
+    "topic": "versions",
+    "instruction": "What package versions does drivine.org advertise for the three clients?",
+    "response": "As of the 2026.11.7 site snapshot: TypeScript @liberation-data/drivine@6.0.0, Python drivine==0.9.0, JVM org.drivine:drivine4j:0.8.0. Re-check drivine.org before locking a training or paper pin; early alphas can still move."
   }
 ]
