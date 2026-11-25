@@ -14,9 +14,9 @@ Training stays out of `slm-setup`. Delivery back into the bridge waits until a l
 ## Order (do not invert)
 
 1. Curate and pin Drivine concepts + instruction pairs from [drivine.org](https://drivine.org/).
-2. Score a clean official coding tag on those tasks (via Ollama on the Halo when A13 is green).
+2. Score a clean official coding tag on those tasks via Ollama on the **GEEKOM Halo** (primary paper host as of 25 Nov 2026; A13 green).
 3. Measure retrieval / prompt packing before weights when a harness exists.
-4. Run one LoRA or QLoRA on the Halo (Ryzen AI Max+ / `gfx1151`) only for the gap that packing did not close.
+4. Run one LoRA or QLoRA on the Halo (Ryzen AI Max+ / `gfx1151`) only for the gap that packing did not close. Downstairs NVIDIA is fallback only.
 
 ## What you get
 
