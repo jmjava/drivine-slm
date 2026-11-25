@@ -1,0 +1,435 @@
+[
+  {
+    "id": "d001",
+    "topic": "overview",
+    "instruction": "What is Drivine?",
+    "response": "Drivine is a graph database client for TypeScript, Python, and the JVM. It maps graphs to objects by composition: you declare views made of node fragments and relationships, and Drivine writes the statement. It also exposes a PersistenceManager when you want to write Cypher yourself. The same storage format is shared across the three language clients."
+  },
+  {
+    "id": "d002",
+    "topic": "overview",
+    "instruction": "Which languages does Drivine support?",
+    "response": "Three first-class clients: TypeScript via npm package @liberation-data/drivine, Python via pip package drivine, and Java/Kotlin via Maven artifact org.drivine:drivine4j. They share object-manager semantics, stamps, and the on-disk / in-store format so a graph written in one language can be read from another."
+  },
+  {
+    "id": "d003",
+    "topic": "engines",
+    "instruction": "Which databases can Drivine talk to?",
+    "response": "Neo4j, Memgraph, FalkorDB, Amazon Neptune (through the low-level PersistenceManager), Postgres, Oracle (SQL/PGQ), and SQLite. On Postgres, Oracle and SQLite, Cypher you write is compiled to SQL over node and edge tables."
+  },
+  {
+    "id": "d004",
+    "topic": "engines",
+    "instruction": "How do I install drivine-python for SQLite?",
+    "response": "Use pip install \"drivine[sqlite]\". Then set DATABASE_TYPE=SQLITE and DATABASE_NAME to a file path such as ./graph.db. There is no host, port, user, or password for SQLite. Prefer a file path over :memory: because pooled connections would each open a separate in-memory database."
+  },
+  {
+    "id": "d005",
+    "topic": "engines",
+    "instruction": "How do I install the TypeScript Drivine client?",
+    "response": "Run npm install @liberation-data/drivine. Peer dependencies include reflect-metadata and neo4j-driver. Enable experimentalDecorators and emitDecoratorMetadata in tsconfig.json so the object manager can read decorator metadata. NestJS is optional via the Nest module."
+  },
+  {
+    "id": "d006",
+    "topic": "object-manager",
+    "instruction": "What is the StatelessGraphObjectManager?",
+    "response": "It is Drivine's high-level API. You declare node fragments and graph views; the manager loads and saves them in one statement each, with no session cache and no lazy loading. Methods include loadAll, save, saveAll, patch, delete helpers, loadNearest for vectors, and loadMatching for full-text."
+  },
+  {
+    "id": "d007",
+    "topic": "views",
+    "instruction": "Explain NodeFragment versus GraphView in Drivine.",
+    "response": "A NodeFragment maps one node label and its properties. A GraphView composes fragments and relationships for a use case, with one Root fragment and zero or more Relationship fields. Prefer many focused views over one model that tries to serve every query."
+  },
+  {
+    "id": "d008",
+    "topic": "views",
+    "instruction": "Write a minimal Python Person NodeFragment for Drivine.",
+    "response": "from typing import Annotated\nfrom drivine import NodeFragment, NodeId\n\nclass Person(NodeFragment, labels=[\"Person\"]):\n    uuid: Annotated[str, NodeId()]\n    name: str\n    bio: str | None = None"
+  },
+  {
+    "id": "d009",
+    "topic": "views",
+    "instruction": "Write a Python GraphView PersonCareer that loads a person and WORKS_FOR employment history.",
+    "response": "from typing import Annotated\nfrom drivine import GraphView, NodeFragment, NodeId, Relationship, RelationshipFragment, Root, TargetNode\n\nclass Organization(NodeFragment, labels=[\"Organization\"]):\n    uuid: Annotated[str, NodeId()]\n    name: str\n\nclass WorkHistory(RelationshipFragment):\n    role: str\n    organization: Annotated[Organization, TargetNode()]\n\nclass Person(NodeFragment, labels=[\"Person\"]):\n    uuid: Annotated[str, NodeId()]\n    name: str\n    bio: str | None = None\n\nclass PersonCareer(GraphView):\n    person: Annotated[Person, Root()]\n    employment_history: Annotated[list[WorkHistory], Relationship(\"WORKS_FOR\")] = []"
+  },
+  {
+    "id": "d010",
+    "topic": "object-manager",
+    "instruction": "How do I save and load a view with DrivineAssembly in Python?",
+    "response": "import asyncio\nfrom drivine import DrivineAssembly, refs\n\nasync def main() -> None:\n    async with DrivineAssembly() as drivine:\n        gom = drivine.graph_object_manager()\n        await gom.save(career_instance)\n        q = refs(PersonCareer)\n        leads = await gom.load_all(\n            PersonCareer,\n            where=q.person.bio.contains_ignore_case(\"lead\"),\n        )\n\nasyncio.run(main())"
+  },
+  {
+    "id": "d011",
+    "topic": "query-dsl",
+    "instruction": "How does the typed query DSL work in drivine-python?",
+    "response": "Call refs(YourViewOrFragment) to get typed field references generated from your models. Chain predicates such as .eq, .contains, .contains_ignore_case on properties. Pass the resulting where clause to load_all, counts, deletes, and related APIs so filters stay aligned with the model."
+  },
+  {
+    "id": "d012",
+    "topic": "query-dsl",
+    "instruction": "Show a TypeScript loadAll filter where person.bio contains 'lead'.",
+    "response": "const leads = await gom.loadAll(PersonCareer, (q) => ({\n  where: q.person.bio.containsIgnoreCase('lead'),\n}));"
+  },
+  {
+    "id": "d013",
+    "topic": "persistence-manager",
+    "instruction": "When should I use PersistenceManager instead of the object manager?",
+    "response": "Use PersistenceManager when you need custom Cypher that views cannot express cleanly—multi-hop path discovery, complex aggregations, or engine-specific clauses. Keep ordinary CRUD and view-shaped reads on the object manager so Drivine can generate portable statements."
+  },
+  {
+    "id": "d014",
+    "topic": "cypher-compiler",
+    "instruction": "What happens when I run Cypher against Postgres with Drivine?",
+    "response": "Drivine compiles the Cypher to SQL over the graph's node and edge tables and returns rows in the same shape a graph engine would. Unsupported constructs are refused by name before the store receives anything. Writes are applied whole or not at all."
+  },
+  {
+    "id": "d015",
+    "topic": "cypher-compiler",
+    "instruction": "Give an example Cypher path query that Drivine can run across Neo4j and relational stores.",
+    "response": "MATCH p = (a)-[:KNOWS*]->(:Character {name: 'Jesse'})\n          -[:APPEARS_IN]->(e {title: 'Pilot'})\nWHERE a.name = 'Hank'\nRETURN [n IN nodes(p) | coalesce(n.name, n.title)]\n\nOn Neo4j this runs as Cypher; on Postgres/Oracle/SQLite Drivine compiles it to SQL and still returns the path node names."
+  },
+  {
+    "id": "d016",
+    "topic": "vector-search",
+    "instruction": "How does loadNearest work in Drivine?",
+    "response": "loadNearest runs approximate nearest-neighbour search on a fragment or view root embedding. Pass the query embedding and options such as topK and threshold. Hits come back as Scored pairs with a normalized similarity score that means the same thing on every supported engine."
+  },
+  {
+    "id": "d017",
+    "topic": "vector-search",
+    "instruction": "How are vector similarity scores normalized across engines?",
+    "response": "Higher always means more similar. For cosine indexes the score is (1 + cos) / 2, ranging from 1 for the same direction to 0 for the opposite. For Euclidean indexes the score is 1 / (1 + d²). Threshold therefore means the same across Neo4j, Memgraph, FalkorDB, Postgres, Oracle and SQLite."
+  },
+  {
+    "id": "d018",
+    "topic": "vector-search",
+    "instruction": "Show a TypeScript loadNearest call for PropositionView.",
+    "response": "const hits: Scored<PropositionView>[] = await gom.loadNearest(\n  PropositionView,\n  queryEmbedding,\n  { topK: 20 },\n);\nhits.forEach((hit) => console.log(hit.score, hit.value));"
+  },
+  {
+    "id": "d019",
+    "topic": "graph-rag",
+    "instruction": "How does graph RAG relate to Drivine?",
+    "response": "Graph RAG stores documents, sections and chunks as node fragments with embeddings, then uses loadNearest / loadMatching and relationship walks for context expansion. Embabel's GraphRagStore implements this on Drivine4j so the same ingestion and retrieval code runs on Neo4j, FalkorDB, Memgraph, Oracle and Postgres."
+  },
+  {
+    "id": "d020",
+    "topic": "graph-rag",
+    "instruction": "Outline a Drivine fragment model for document chunks used in RAG.",
+    "response": "Use a Document fragment (id, title), Section fragment (id, heading) linked to Document, and Chunk fragment (id, text, embedding with a vector index) linked to Section. A ChunkContext GraphView roots on Chunk and pulls neighbouring chunks plus ancestor section/document for expansion after vector retrieval."
+  },
+  {
+    "id": "d021",
+    "topic": "schema",
+    "instruction": "What schema features does Drivine manage?",
+    "response": "Range, uniqueness, vector and full-text indexes declared on your classes. At startup Drivine enforces them and can detect drift. Optimistic locking uses a NodeStamp shared across language clients so a save fails if the node changed since load."
+  },
+  {
+    "id": "d022",
+    "topic": "schema",
+    "instruction": "What is NodeStamp / @NodeStamp in Drivine?",
+    "response": "An optimistic-locking stamp stored with the node. When you load an entity and later save it, Drivine refuses the save if the stamp no longer matches, meaning another writer changed the node. The stamp format is shared by TypeScript, Python and JVM clients."
+  },
+  {
+    "id": "d023",
+    "topic": "config",
+    "instruction": "Which environment variables configure the default Drivine database?",
+    "response": "DATABASE_TYPE (NEO4J, MEMGRAPH, FALKORDB, ORACLE, NEPTUNE, POSTGRES, or SQLITE), DATABASE_HOST, DATABASE_PORT, DATABASE_USER, DATABASE_PASSWORD, DATABASE_NAME, DATABASE_POOL_MAX, and DATABASE_CONNECTION_TIMEOUT. Named databases use a PREFIX_DATABASE_* pattern. SQLite only needs TYPE and NAME (file path)."
+  },
+  {
+    "id": "d024",
+    "topic": "config",
+    "instruction": "How do I point TypeScript Drivine tests at a local Neo4j?",
+    "response": "Set USE_LOCAL_NEO4J=true while iterating so tests use your local instance instead of spinning a container. CI can still use testcontainers for each datasource. Configure the usual DATABASE_* variables for the local connection."
+  },
+  {
+    "id": "d025",
+    "topic": "typescript",
+    "instruction": "Show a TypeScript NodeFragment and GraphView for PersonCareer.",
+    "response": "@NodeFragment({ labels: ['Person'] })\nexport class Person {\n  @NodeId() uuid: string;\n  name: string;\n  bio?: string;\n}\n\n@GraphView()\nexport class PersonCareer {\n  @Root() person: Person;\n\n  @GraphRelationship({ type: 'WORKS_FOR', target: () => WorkHistory })\n  employmentHistory: WorkHistory[] = [];\n}"
+  },
+  {
+    "id": "d026",
+    "topic": "typescript",
+    "instruction": "How do I register Drivine in NestJS?",
+    "response": "Import DrivineModule.withOptions({ connectionProviders: [DatabaseRegistry.buildOrResolveFromEnv()] }) in your Nest module. Inject managers with @InjectPersistenceManager, @InjectGraphObjectManager, or statement injectors from @liberation-data/drivine/nest. The module closes connections when the app stops."
+  },
+  {
+    "id": "d027",
+    "topic": "jvm",
+    "instruction": "What is drivine4j and how does it fit Embabel?",
+    "response": "drivine4j is the Java/Kotlin Drivine client. Annotated models, a KSP-generated DSL, and Spring Boot auto-configuration with testcontainers. Embabel's graph RAG store and related agents use drivine4j so Kotlin services get portable graph + vector search across supported engines."
+  },
+  {
+    "id": "d028",
+    "topic": "jvm",
+    "instruction": "Show a Kotlin Person NodeFragment for drivine4j.",
+    "response": "@NodeFragment(labels = [\"Person\"])\ndata class Person(\n    @NodeId val uuid: String,\n    val name: String,\n    val bio: String?\n)"
+  },
+  {
+    "id": "d029",
+    "topic": "sqlite",
+    "instruction": "How is a SQLite graph stored by Drivine?",
+    "response": "Three tables under a graph path prefix (default drivine): _node (nid, labels, props, stamp), _edge (eid, src, dst, type, props) with cascade delete on nodes, and _schema for indexes and constraints. Labels and properties are JSON text. The format matches drivine4j so other language clients can open the same file."
+  },
+  {
+    "id": "d030",
+    "topic": "performance",
+    "instruction": "What performance principles does Drivine follow?",
+    "response": "No lazy loading, no session cache to keep warm, and no N+1 relationship queries. A view with everything related loads in one statement; a save is one statement too. Graph Bench compares engines with the same Kotlin via drivine4j."
+  },
+  {
+    "id": "d031",
+    "topic": "studio",
+    "instruction": "What is Drivine Studio?",
+    "response": "A desktop/browser tool that reads .drivine/model.json written by the clients. You drag a view onto a canvas to see what loadAll would load, inspect generated Cypher, and run read queries—including Cypher compiled to SQL on Postgres and Oracle."
+  },
+  {
+    "id": "d032",
+    "topic": "model-json",
+    "instruction": "How do clients emit model.json for Drivine Studio?",
+    "response": "drivine4j writes .drivine/model.json at build time. Python emits it from its stubs step. TypeScript uses npx drivine model. Studio consumes that file to visualize views and statements."
+  },
+  {
+    "id": "d033",
+    "topic": "saves",
+    "summary": "null policies",
+    "instruction": "What save options matter on the object manager?",
+    "response": "save and saveAll support null policies and replace modes. You also get update, create, patch, cascading deletes, relate and unrelate. Choose replace versus merge semantics deliberately when rewriting relationship collections on a view."
+  },
+  {
+    "id": "d034",
+    "topic": "neptune",
+    "instruction": "Does the object manager support Amazon Neptune?",
+    "response": "Neptune connects for the PersistenceManager low-level API. The object manager runs on Neo4j, Memgraph, FalkorDB, Postgres, Oracle and SQLite. Use hand-written openCypher through PersistenceManager for Neptune."
+  },
+  {
+    "id": "d035",
+    "topic": "python",
+    "instruction": "Is drivine-python async or sync?",
+    "response": "Async first, with a sync API written from the async one. Prefer async with DrivineAssembly in applications. The sync wrappers are useful for scripts and notebooks."
+  },
+  {
+    "id": "d036",
+    "topic": "python",
+    "instruction": "How do I register a database without DrivineAssembly?",
+    "response": "async with DatabaseRegistry() as registry:\n    registry.build_or_resolve_from_env()\n    gom = StatelessGraphObjectManager(PersistenceManagerFactory(registry).get())\n    # use gom...\nLeaving the registry closes pools and drivers."
+  },
+  {
+    "id": "d037",
+    "topic": "full-text",
+    "instruction": "How do I run full-text search with Drivine?",
+    "response": "Declare a full-text index on the property, then call loadMatching on the view or fragment. On some graph engines you may need the compiler extra (for example drivine[neo4j,compiler]) so load_matching is available. Scores follow the same higher-is-better convention as vector search where applicable."
+  },
+  {
+    "id": "d038",
+    "topic": "install",
+    "instruction": "How do I install drivine-python for Neo4j?",
+    "response": "pip install \"drivine[neo4j]\". Set DATABASE_TYPE=NEO4J plus host, port, user and password. The same extra also covers Memgraph and Neptune connectivity patterns documented for that driver."
+  },
+  {
+    "id": "d039",
+    "topic": "install",
+    "instruction": "How do I install drivine-python for Postgres?",
+    "response": "pip install \"drivine[postgres]\". Requires Postgres 14+. Drivine uses psycopg 3 and stores the graph in node/edge tables. Cypher is compiled to SQL. Enable pgvector when you need vector indexes for loadNearest."
+  },
+  {
+    "id": "d040",
+    "topic": "install",
+    "instruction": "How do I add drivine4j with Maven or Gradle?",
+    "response": "Depend on org.drivine:drivine4j with the version published on drivine.org (check the homepage for the current pin). Use Spring Boot auto-configuration for connection setup and testcontainers support in tests."
+  },
+  {
+    "id": "d041",
+    "topic": "lora",
+    "instruction": "Why fine-tune a local LLM on Drivine documentation?",
+    "response": "A LoRA adapter trained on Drivine instruction pairs helps a small local model answer API questions, draft fragments/views, and suggest Cypher or DSL filters without sending proprietary graph schemas to a cloud model. On a GEEKOM AMD AI mini PC you can train and serve that adapter entirely on-device with ROCm."
+  },
+  {
+    "id": "d042",
+    "topic": "lora",
+    "instruction": "What base model should I start with for Drivine LoRA on a GEEKOM A9?",
+    "response": "Start with a 1–3B instruct model such as Qwen2.5-1.5B-Instruct for smoke LoRA runs. Use PEFT LoRA with adamw_torch, batch size 1, and gradient accumulation. After the pipeline is stable on gfx1150/gfx1151, scale to larger instruct models if unified memory allows."
+  },
+  {
+    "id": "d043",
+    "topic": "amd",
+    "instruction": "How do I install PyTorch for a GEEKOM with gfx1151?",
+    "response": "Create a venv, then install the AMD wheel that matches your architecture, for example:\npython -m pip install --index-url https://stable.repo.amd.com/rocm/whl-next/ \"torch[device-gfx1151]==2.14.0+rocm10.2.0\"\nConfirm with python -c \"import torch; print(torch.cuda.is_available(), torch.cuda.get_device_name(0))\" — ROCm exposes the GPU through the CUDA APIs in PyTorch."
+  },
+  {
+    "id": "d044",
+    "topic": "amd",
+    "instruction": "What LoRA settings are safest on AMD ROCm?",
+    "response": "Use adapter method LoRA (not fused NVIDIA-oriented kernels), explicit target modules q_proj k_proj v_proj o_proj gate_proj up_proj down_proj, optimizer adamw_torch, and avoid bitsandbytes 4-bit until you have a ROCm build that matches your ROCm minor version. Disable Axolotl lora_*_kernel flags if you use Axolotl."
+  },
+  {
+    "id": "d045",
+    "topic": "amd",
+    "instruction": "How do I raise shared GPU memory on Linux for Ryzen AI unified memory?",
+    "response": "Install amd-debug-tools, run amd-ttm to inspect the shared pool, then amd-ttm --set <GB> leaving headroom for the OS, and reboot. Prefer a small dedicated VRAM BIOS setting so more memory can be shared with the GPU."
+  },
+  {
+    "id": "d046",
+    "topic": "rag-design",
+    "instruction": "Design a Drivine investigation graph for API concepts.",
+    "response": "Model Concept nodes (id, title, summary, category), DocChunk nodes (id, text, sourceUrl, embedding), and edges RELATES_TO between concepts and MENTIONS from chunks to concepts. A ConceptBrief GraphView roots on Concept and pulls related concepts plus mentioning chunks for RAG-style answers about Drivine itself."
+  },
+  {
+    "id": "d047",
+    "topic": "rag-design",
+    "instruction": "Write Cypher to find concepts related to vector search within 2 hops.",
+    "response": "MATCH (c:Concept {id: 'vector-search'})-[:RELATES_TO*1..2]-(other:Concept)\nRETURN DISTINCT other.id AS id, other.title AS title\nORDER BY title"
+  },
+  {
+    "id": "d048",
+    "topic": "debugging",
+    "instruction": "Drivine save fails after a concurrent update. What should I check?",
+    "response": "Check optimistic locking. If the entity carries a NodeStamp from an earlier load, another writer may have changed the node. Reload the view, reapply your edits, and save again. Confirm all clients sharing the store honor the same stamp field."
+  },
+  {
+    "id": "d049",
+    "topic": "debugging",
+    "instruction": "My Cypher works on Neo4j but Drivine refuses it on Postgres. Why?",
+    "response": "The Cypher-to-SQL compiler supports a defined subset. Constructs it does not compile yet are refused by name before execution. Simplify the query, express it as an object-manager view, or run that statement only on a native graph engine."
+  },
+  {
+    "id": "d050",
+    "topic": "best-practice",
+    "instruction": "Give best practices for modeling with Drivine views.",
+    "response": "1) One view per use case. 2) Keep fragments small and reusable. 3) Put edge properties on RelationshipFragment. 4) Declare indexes next to fields that are filtered or embedded. 5) Prefer the DSL for portable filters; reserve PersistenceManager for path-heavy Cypher. 6) Load only the relationships the use case needs."
+  },
+  {
+    "id": "d051",
+    "topic": "best-practice",
+    "instruction": "How should I structure a local Drivine + LoRA workflow on GEEKOM?",
+    "response": "1) Seed a SQLite investigation graph with concepts and doc chunks. 2) Export or curate instruction JSON for SFT. 3) Run check_amd.py to verify ROCm/gfx. 4) Train LoRA with train_lora.py on the dataset. 5) Run infer.py to ask Drivine API questions locally. 6) Point the same models at Neo4j/Postgres when you move beyond the lab file."
+  },
+  {
+    "id": "d052",
+    "topic": "compare",
+    "instruction": "How is Drivine different from using neo4j-driver alone?",
+    "response": "neo4j-driver executes Cypher you write against Neo4j. Drivine adds an object manager with typed views, a DSL, schema enforcement, stamps, vector/full-text helpers, and the same API across multiple engines—including compiling Cypher to SQL for Postgres, Oracle and SQLite—plus matching clients in Python and on the JVM."
+  },
+  {
+    "id": "d053",
+    "topic": "compare",
+    "instruction": "When is SQLite the right Drivine engine?",
+    "response": "Local prototyping, single-user tools, CI without containers, and shipping a graph as a file. It is not a multi-writer OLTP server. For concurrent services prefer Neo4j, Memgraph, FalkorDB, Postgres or Oracle, while keeping the same object models."
+  },
+  {
+    "id": "d054",
+    "topic": "embeddings",
+    "instruction": "Where should embedding vectors live in a Drivine model?",
+    "response": "On the fragment that is retrieved by similarity—typically a Chunk or Proposition node—annotated with a vector index. Views that need neighbours should root on that fragment and declare relationships for expansion after loadNearest returns hits."
+  },
+  {
+    "id": "d055",
+    "topic": "transactions",
+    "instruction": "How do transactions work with Drivine managers?",
+    "response": "Use the transactional helpers / @Transactional integration in each language so multiple statements commit or roll back together. Object-manager saves are already single-statement; wrap multi-step workflows (save then relate then custom Cypher) in an explicit transaction."
+  },
+  {
+    "id": "d056",
+    "topic": "paging",
+    "instruction": "Does the Drivine DSL support paging?",
+    "response": "Yes. The typed query DSL accepts ordering and keyset paging for loads and related operations, which is preferable to fragile offset paging on large graphs."
+  },
+  {
+    "id": "d057",
+    "topic": "security",
+    "instruction": "How should I handle database credentials with Drivine?",
+    "response": "Load DATABASE_* from the environment or a local .env that Drivine reads—never hardcode passwords in source. Prefer least-privilege DB users for the app. For published apps, inject secrets from the host environment and keep a mock/SQLite fallback for local UI demos."
+  },
+  {
+    "id": "d058",
+    "topic": "testing",
+    "instruction": "How do I test Drivine code?",
+    "response": "Use testcontainers for each engine in CI. While iterating, point at a local Neo4j with USE_LOCAL_NEO4J=true or use a disposable SQLite file. Assert on view shapes and DSL filters rather than brittle full Cypher strings when using the object manager."
+  },
+  {
+    "id": "d059",
+    "topic": "migration",
+    "instruction": "Can I move a Drivine graph from SQLite to Postgres?",
+    "response": "Yes in principle: both SQL engines use the shared node/edge table layout. Export/import data or replay saves through the object manager against the new DATABASE_* settings. Recreate vector/full-text indexes via schema declarations on startup, and verify stamps still round-trip."
+  },
+  {
+    "id": "d060",
+    "topic": "unsloth",
+    "instruction": "Can I use Unsloth for Drivine LoRA training on AMD?",
+    "response": "Yes. Unsloth officially supports AMD RDNA 3/3.5/4 including Ryzen AI Max (gfx1150/gfx1151). Install with the AMD extras and a ROCm-compatible bitsandbytes if you need 4-bit. This lab's train_lora.py uses plain PEFT/TRL so it runs even when Unsloth is not installed; swap in FastModel later for speed."
+  },
+  {
+    "id": "d061",
+    "topic": "dataset",
+    "instruction": "What format does this lab's LoRA dataset use?",
+    "response": "JSON array (and JSONL export) of objects with id, topic, instruction, and response. Training scripts map each row to a chat messages pair: user=instruction, assistant=response. Add your own rows for project-specific Cypher, schemas and RAG patterns."
+  },
+  {
+    "id": "d062",
+    "topic": "infer",
+    "instruction": "How do I test the LoRA adapter after training?",
+    "response": "Run python -m train.infer --adapter outputs/drivine-lora --prompt \"How does loadNearest work in Drivine?\" The script loads the base model, attaches the adapter with PEFT, and prints the completion. Compare answers to the dataset and to drivine.org for factuality."
+  },
+  {
+    "id": "d063",
+    "topic": "edge-cases",
+    "instruction": "What is a RelationshipFragment used for?",
+    "response": "It models properties on a relationship plus a TargetNode. Example: WorkHistory with role and organization. Use it when the edge carries data you need in the view, not only the neighbour node."
+  },
+  {
+    "id": "d064",
+    "topic": "edge-cases",
+    "instruction": "Can one node type appear in multiple Drivine views?",
+    "response": "Yes. That is the point of fragments. Person can be the root of PersonCareer and also appear inside a TeamRoster view with different relationships loaded. Declare each use case as its own GraphView."
+  },
+  {
+    "id": "d065",
+    "topic": "versions",
+    "instruction": "Where do I find current Drivine package versions?",
+    "response": "drivine.org lists the current TypeScript, Python and drivine4j versions on the homepage. Pin those in package.json, pyproject.toml and your build.gradle/pom.xml. APIs in early Python alphas may still shift—read the release notes before upgrading."
+  },
+  {
+    "id": "d066",
+    "topic": "falkordb",
+    "instruction": "Any FalkorDB-specific notes for Drivine?",
+    "response": "Install drivine[falkordb]. FalkorDB is often fast on graph-bench workloads. Unique constraints and full-text behaviour differ slightly by engine; Drivine normalizes schema operations and search scoring so application code stays portable."
+  },
+  {
+    "id": "d067",
+    "topic": "oracle",
+    "instruction": "What do I need for Oracle with Drivine?",
+    "response": "Oracle Database 23ai or later, drivine[oracle] (thin python-oracledb, no Instant Client), and the full Oracle Free image if you need full-text in containers. Drivine reads with SQL/PGQ and writes rows; there is no Cypher engine on Oracle—compilation provides Cypher compatibility."
+  },
+  {
+    "id": "d068",
+    "topic": "memgraph",
+    "instruction": "What image should I use for Memgraph vector search with Drivine?",
+    "response": "Use memgraph/memgraph-mage (or the documented image that includes vector and text search modules). Plain Memgraph images may lack the modules loadNearest and loadMatching need."
+  },
+  {
+    "id": "d069",
+    "topic": "code-review",
+    "instruction": "Review this idea: one Person class with every relationship for every screen.",
+    "response": "Avoid it. Drivine encourages compose-views-not-models. Split screens into GraphViews that load only required relationships. Shared NodeFragments keep properties consistent without forcing every query to hydrate the entire neighbourhood."
+  },
+  {
+    "id": "d070",
+    "topic": "code-review",
+    "instruction": "Review this idea: call loadNearest then run a separate query per hit for parents.",
+    "response": "Prefer a GraphView that includes the parent relationships so each hit materializes context in the same statement. That preserves Drivine's one-round-trip design and avoids N+1 queries after vector search."
+  },
+  {
+    "id": "d071",
+    "topic": "prompting",
+    "instruction": "Draft a system prompt for a Drivine coding assistant LoRA.",
+    "response": "You are a local assistant specialized in Drivine, the multi-language graph client. Prefer object-manager views and the typed DSL. Suggest PersistenceManager Cypher only when needed. Call out engine differences (native Cypher vs SQL compilation). When writing Python, use NodeFragment, GraphView, DrivineAssembly and refs. When writing TypeScript, use decorators and Nest injection only if asked. Be precise and include minimal runnable snippets."
+  },
+  {
+    "id": "d072",
+    "topic": "prompting",
+    "instruction": "User asks: create a view to load a repo issue with author, labels and comments.",
+    "response": "Define Issue, Person, Label and Comment fragments. Create IssueThread GraphView with Root Issue, Relationship AUTHOR to Person, LABELED to Label list, and HAS_COMMENT to Comment list. loadAll/load by issue id through the DSL. Add indexes on Issue.number and any lookup keys. This matches Drivine's one-statement view loading style used in their benchmarks."
+  }
+]

@@ -1,0 +1,98 @@
+[
+  {
+    "id": "object-manager",
+    "title": "StatelessGraphObjectManager",
+    "category": "core",
+    "summary": "High-level API that maps decorated / Pydantic models to graph loads and saves. One statement per round trip; no session cache or lazy loading.",
+    "detail": "Declare @NodeFragment (TS/JVM) or NodeFragment (Python) classes for nodes, compose them into GraphView models with Root and Relationship annotations, then call loadAll / save / loadNearest. Drivine writes the Cypher or compiled SQL for each engine.",
+    "related": ["views", "persistence-manager", "query-dsl", "vector-search"]
+  },
+  {
+    "id": "views",
+    "title": "Compose views, not models",
+    "category": "core",
+    "summary": "A person can play many roles. Declare a view per use case from node fragments and relationships instead of one mega-model.",
+    "detail": "GraphView composes fragments. Root marks the entry node. Relationship / GraphRelationship wires edges (and RelationshipFragment for edge properties + TargetNode). The typed DSL references come from the classes themselves (KSP on JVM, stubs in Python).",
+    "related": ["object-manager", "query-dsl", "schema"]
+  },
+  {
+    "id": "persistence-manager",
+    "title": "PersistenceManager",
+    "category": "core",
+    "summary": "Low-level API for hand-written Cypher (or compiled SQL on relational stores). Use when the object manager cannot express the query.",
+    "detail": "Pass a Cypher statement; Neo4j, Memgraph, FalkorDB and Neptune run it as written. On Postgres, Oracle and SQLite, Drivine compiles Cypher to SQL over node and edge tables and returns the same row shapes.",
+    "related": ["cypher-compiler", "engines", "object-manager"]
+  },
+  {
+    "id": "query-dsl",
+    "title": "Typed query DSL",
+    "category": "query",
+    "summary": "Filters, ordering, keyset paging and index advice accepted by loads, counts, deletes, patches and grouped reads.",
+    "detail": "In Python use refs(View).field.contains(...). In TypeScript the DSL references come from the decorated classes. JVM generates the DSL with KSP. Prefer the DSL for object-manager paths; fall back to PersistenceManager for path walks and custom Cypher.",
+    "related": ["object-manager", "views", "vector-search"]
+  },
+  {
+    "id": "vector-search",
+    "title": "Vector and full-text search",
+    "category": "ai",
+    "summary": "loadNearest and loadMatching on views and fragments, with one normalized score scale across engines.",
+    "detail": "Declare @VectorIndex / vector fields on fragments. loadNearest(queryEmbedding, { topK, threshold }) returns Scored hits. Cosine indexes use (1 + cos) / 2; Euclidean uses 1 / (1 + d²). Full-text uses loadMatching. Graph RAG stacks (Embabel) build on this.",
+    "related": ["graph-rag", "schema", "object-manager"]
+  },
+  {
+    "id": "graph-rag",
+    "title": "Graph RAG on any database",
+    "category": "ai",
+    "summary": "Chunk documents into a hierarchy (document → section → chunk), embed them, and retrieve with vector/full-text plus graph expansion.",
+    "detail": "Embabel's GraphRagStore uses Drivine4j so the same store runs on Neo4j, FalkorDB, Memgraph, Oracle and Postgres. Ingestion writes fragments; retrieval uses loadNearest then walks relationships for context. This lab's LoRA dataset teaches Drivine APIs so a local model can help author those views and queries.",
+    "related": ["vector-search", "engines", "lora-goal"]
+  },
+  {
+    "id": "cypher-compiler",
+    "title": "Cypher on relational stores",
+    "category": "engines",
+    "summary": "On Postgres, Oracle and SQLite, Drivine compiles Cypher to SQL over two tables: nodes and relationships.",
+    "detail": "Variable-length paths and quantified path patterns compile too. Unsupported Cypher is refused by name before anything hits the store. One Cypher statement can be verified across Node, Python and JVM clients that share the storage format.",
+    "related": ["persistence-manager", "engines", "sqlite"]
+  },
+  {
+    "id": "engines",
+    "title": "Supported engines",
+    "category": "engines",
+    "summary": "Neo4j, Memgraph, FalkorDB, Amazon Neptune (low-level), Postgres, Oracle SQL/PGQ, and SQLite.",
+    "detail": "Object manager runs on the graph and SQL engines (Neptune is PersistenceManager-only). Install extras per engine: drivine[neo4j], [falkordb], [postgres], [oracle], [sqlite]. TypeScript and JVM packages mirror the same engine set.",
+    "related": ["cypher-compiler", "sqlite", "schema"]
+  },
+  {
+    "id": "sqlite",
+    "title": "SQLite graph file",
+    "category": "engines",
+    "summary": "A whole graph in one file via node/edge tables shared with drivine4j — no server required for local investigation.",
+    "detail": "Set DATABASE_TYPE=SQLITE and DATABASE_NAME=path/to/graph.db. Tables: _node, _edge, _schema. Ideal for this lab's seed_graph.py on a laptop before pointing at Neo4j or Postgres in production.",
+    "related": ["engines", "cypher-compiler", "object-manager"]
+  },
+  {
+    "id": "schema",
+    "title": "Schema management",
+    "category": "ops",
+    "summary": "Range, uniqueness, vector and full-text indexes declared on classes, enforced at startup with drift detection.",
+    "detail": "Declare indexes beside the model. At assembly/start, Drivine creates missing indexes and reports drift. Optimistic locking uses @NodeStamp / NodeStamp shared across language clients.",
+    "related": ["object-manager", "vector-search", "engines"]
+  },
+  {
+    "id": "multi-language",
+    "title": "One storage format, three clients",
+    "category": "core",
+    "summary": "TypeScript (@liberation-data/drivine), Python (drivine), and JVM (drivine4j) share the storage format and stamp semantics.",
+    "detail": "A graph written from Node can be read and stamp-checked from Python or Kotlin. Versions tracked on drivine.org — e.g. TS 6.x, Python 0.9.x, drivine4j 0.8.x (check the site for current pins).",
+    "related": ["object-manager", "schema", "engines"]
+  },
+  {
+    "id": "lora-goal",
+    "title": "Why LoRA on GEEKOM for Drivine",
+    "category": "ai",
+    "summary": "Fine-tune a small instruct model on Drivine Q&A so your GEEKOM AMD box becomes a local coding assistant for graph views, Cypher and RAG patterns.",
+    "detail": "This repo ships an instruction dataset distilled from drivine.org concepts, AMD-ready PEFT/TRL LoRA scripts for gfx1150/gfx1151, and a lab UI to browse concepts and samples before you train on-device. Start with Qwen2.5-1.5B-Instruct LoRA; scale up once the smoke run succeeds.",
+    "related": ["graph-rag", "vector-search", "multi-language"]
+  }
+]

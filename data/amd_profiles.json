@@ -1,0 +1,83 @@
+[
+  {
+    "id": "geekom-a9-mega",
+    "name": "GEEKOM A9 Mega / Max+",
+    "chip": "AMD Ryzen AI Max+ 395",
+    "gpu": "Radeon 8060S",
+    "gfx": "gfx1151",
+    "unifiedMemoryGb": 128,
+    "recommendedVramGb": 64,
+    "torchIndex": "https://stable.repo.amd.com/rocm/whl-next/",
+    "torchPackage": "torch[device-gfx1151]==2.14.0+rocm10.2.0",
+    "notes": [
+      "Allocate shared GPU memory via amd-ttm (Linux) or Variable Graphics Memory (Windows).",
+      "Prefer LoRA with adamw_torch; avoid fused LoRA kernels that assume NVIDIA Triton paths.",
+      "QLoRA needs a ROCm bitsandbytes build matching your ROCm minor version."
+    ],
+    "defaultTrain": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "method": "lora",
+      "loraR": 16,
+      "loraAlpha": 32,
+      "maxSeqLen": 1024,
+      "batchSize": 1,
+      "gradAccum": 8,
+      "lr": 2e-4,
+      "maxSteps": 60
+    }
+  },
+  {
+    "id": "geekom-a9-max",
+    "name": "GEEKOM A9 Max",
+    "chip": "AMD Ryzen AI 9 HX 370 / HX 470",
+    "gpu": "Radeon 890M",
+    "gfx": "gfx1150",
+    "unifiedMemoryGb": 64,
+    "recommendedVramGb": 32,
+    "torchIndex": "https://stable.repo.amd.com/rocm/whl-next/",
+    "torchPackage": "torch[device-gfx1150]==2.14.0+rocm10.2.0",
+    "notes": [
+      "Start with a 1–3B instruct model for smoke LoRA runs.",
+      "Set load_in_4bit only after a matching ROCm bitsandbytes is installed.",
+      "On Windows, Unsloth/ROCm community wheels for gfx1150 are an option."
+    ],
+    "defaultTrain": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "method": "lora",
+      "loraR": 8,
+      "loraAlpha": 16,
+      "maxSeqLen": 768,
+      "batchSize": 1,
+      "gradAccum": 8,
+      "lr": 2e-4,
+      "maxSteps": 40
+    }
+  },
+  {
+    "id": "generic-rdna35",
+    "name": "Generic RDNA 3.5 (Strix)",
+    "chip": "Ryzen AI 300 / AI MAX",
+    "gpu": "Integrated Radeon",
+    "gfx": "gfx115x",
+    "unifiedMemoryGb": 64,
+    "recommendedVramGb": 24,
+    "torchIndex": "https://stable.repo.amd.com/rocm/whl-next/",
+    "torchPackage": "torch (pick device-gfx1150 / gfx1151 / gfx1152 for your silicon)",
+    "notes": [
+      "Match the PyTorch wheel extra to your exact gfx target.",
+      "Disable lora_*_kernel fused paths in Axolotl-style configs on AMD.",
+      "Flash Attention 2 is unavailable on ROCm; Xformers or SDPA is fine."
+    ],
+    "defaultTrain": {
+      "model": "Qwen/Qwen2.5-1.5B-Instruct",
+      "method": "lora",
+      "loraR": 16,
+      "loraAlpha": 32,
+      "maxSeqLen": 1024,
+      "batchSize": 1,
+      "gradAccum": 8,
+      "lr": 2e-4,
+      "maxSteps": 50
+    }
+  }
+]

@@ -1,0 +1,35 @@
+[project]
+name = "drivine-lora-lab"
+version = "0.1.0"
+description = "Investigate drivine.org and fine-tune a LoRA adapter on AMD ROCm (GEEKOM AI PCs)."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "datasets>=3.0.0",
+  "accelerate>=1.0.0",
+  "transformers>=4.45.0",
+  "peft>=0.13.0",
+  "trl>=0.12.0",
+  "safetensors>=0.4.0",
+  "sentencepiece>=0.2.0",
+  "protobuf>=4.25.0",
+]
+
+[project.optional-dependencies]
+drivine = ["drivine[sqlite]>=0.8.0"]
+dev = ["ruff>=0.8.0"]
+
+[project.scripts]
+drivine-check-amd = "train.check_amd:main"
+drivine-train-lora = "train.train_lora:main"
+drivine-infer = "train.infer:main"
+drivine-seed-graph = "drivine_lab.seed_graph:main"
+drivine-export-jsonl = "drivine_lab.export_jsonl:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["drivine_lab*", "train*"]

@@ -1,0 +1,174 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --paper: #e7eef1;
+  --ink: #0e1a22;
+  --muted: #4f6270;
+  --panel: #f5f9fb;
+  --edge: color-mix(in oklab, #0e1a22 12%, transparent);
+  --signal: #0f8f8a;
+  --ember: #b45309;
+  --code: #0b1620;
+  --code-ink: #d5e8e6;
+  --background: var(--paper);
+  --foreground: var(--ink);
+  --card: var(--panel);
+  --card-foreground: var(--ink);
+  --popover: var(--panel);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--paper);
+  --secondary: color-mix(in oklab, var(--signal) 12%, var(--paper));
+  --secondary-foreground: var(--ink);
+  --muted-foreground: var(--muted);
+  --accent: color-mix(in oklab, var(--ember) 12%, var(--paper));
+  --accent-foreground: var(--ink);
+  --destructive: oklch(0.55 0.2 25);
+  --border: var(--edge);
+  --input: var(--edge);
+  --ring: var(--signal);
+  --radius: 0.15rem;
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-display);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: color-mix(in oklab, var(--ink) 6%, var(--paper));
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) * 0.8);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) * 1.4);
+  --font-sans: var(--font-body);
+  --font-mono: var(--font-mono);
+  --font-heading: var(--font-display);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply scroll-smooth;
+  }
+  body {
+    @apply bg-background text-foreground antialiased;
+    background-image:
+      radial-gradient(1200px 600px at 8% -8%, color-mix(in oklab, var(--signal) 18%, transparent), transparent 58%),
+      radial-gradient(900px 520px at 92% 0%, color-mix(in oklab, var(--ember) 10%, transparent), transparent 55%),
+      linear-gradient(180deg, #dce7ec 0%, var(--paper) 40%, #d9e8e4 100%);
+    min-height: 100%;
+  }
+}
+
+.graph-wash {
+  background-image:
+    linear-gradient(var(--edge) 1px, transparent 1px),
+    linear-gradient(90deg, var(--edge) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at 40% 30%, black 20%, transparent 72%);
+  opacity: 0.45;
+}
+
+@keyframes edgeDraw {
+  from {
+    stroke-dashoffset: 420;
+    opacity: 0.15;
+  }
+  to {
+    stroke-dashoffset: 0;
+    opacity: 0.9;
+  }
+}
+
+@keyframes nodePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.75;
+  }
+  50% {
+    transform: scale(1.35);
+    opacity: 1;
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.edge-draw {
+  stroke-dasharray: 420;
+  animation: edgeDraw 2.4s ease forwards;
+}
+
+.edge-delay-1 {
+  animation-delay: 0.25s;
+}
+.edge-delay-2 {
+  animation-delay: 0.45s;
+}
+.edge-delay-3 {
+  animation-delay: 0.65s;
+}
+
+.node-pulse {
+  transform-origin: center;
+  animation: nodePulse 3.2s ease-in-out infinite;
+}
+
+.node-delay-1 {
+  animation-delay: 0.4s;
+}
+.node-delay-2 {
+  animation-delay: 0.8s;
+}
+.node-delay-3 {
+  animation-delay: 1.2s;
+}
+
+.rise-in {
+  animation: riseIn 0.7s ease both;
+}
+
+.rise-delay-1 {
+  animation-delay: 0.12s;
+}
+.rise-delay-2 {
+  animation-delay: 0.24s;
+}
+.rise-delay-3 {
+  animation-delay: 0.36s;
+}
+
+.section-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge), transparent);
+}
