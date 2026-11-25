@@ -30,15 +30,15 @@ export default function Home() {
 
           <div className="max-w-4xl py-16 md:py-20">
             <p className="rise-in font-mono text-[11px] uppercase tracking-[0.24em] text-[var(--signal)]">
-              investigation lab
+              slm family · drivine track
             </p>
             <h1 className="rise-in rise-delay-1 mt-4 font-[family-name:var(--font-display)] text-[clamp(2.8rem,9vw,6.4rem)] leading-[0.92] tracking-[-0.04em] text-[var(--ink)]">
-              Drivine
-              <span className="block text-[var(--signal)]">LoRA Lab</span>
+              drivine
+              <span className="block text-[var(--signal)]">-slm</span>
             </h1>
             <p className="rise-in rise-delay-2 mt-6 max-w-xl text-lg leading-relaxed text-[var(--muted)] md:text-xl">
-              Map drivine.org into a trainable instruction set, then fine-tune a
-              small instruct model with LoRA on your GEEKOM AMD AI machine.
+              Sibling of embabel-slm: map drivine.org into a corpus, then train a
+              LoRA on the Halo AMD host when the clean baseline is scored.
             </p>
             <div className="rise-in rise-delay-3 mt-8 flex flex-wrap gap-3">
               <a
@@ -121,7 +121,7 @@ export default function Home() {
       <footer className="border-t border-[var(--edge)] px-5 py-10 md:px-10">
         <div className="mx-auto flex max-w-6xl flex-col gap-3 text-sm text-[var(--muted)] md:flex-row md:items-center md:justify-between">
           <p className="font-[family-name:var(--font-display)] text-lg tracking-tight text-[var(--ink)]">
-            Drivine LoRA Lab
+            drivine-slm
           </p>
           <p className="font-mono text-xs">
             Concepts are sample study notes — verify against{" "}

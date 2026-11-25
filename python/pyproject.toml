@@ -1,7 +1,7 @@
 [project]
-name = "drivine-lora-lab"
+name = "drivine-slm"
 version = "0.1.0"
-description = "Investigate drivine.org and fine-tune a LoRA adapter on AMD ROCm (GEEKOM AI PCs)."
+description = "Drivine-domain SLM track: corpus and AMD LoRA training for the Halo host (sibling of embabel-slm)."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [

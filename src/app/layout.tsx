@@ -21,9 +21,9 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Drivine LoRA Lab",
+  title: "drivine-slm",
   description:
-    "Investigate drivine.org concepts and train a LoRA adapter on your GEEKOM AMD AI machine.",
+    "Drivine-domain SLM track: investigate drivine.org and train a LoRA adapter on the Halo AMD host.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
