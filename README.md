@@ -7,6 +7,7 @@ Drivine-domain track in the local coding SLM family.
 | [jmjava/slm-setup](https://github.com/jmjava/slm-setup) | MCP bridge that serves a local model to Cursor, Copilot, and Claude |
 | [jmjava/embabel-slm](https://github.com/jmjava/embabel-slm) | Embabel / Spring / Kotlin model program and harness |
 | **jmjava/drivine-slm** (this repo) | Drivine graph-client corpus, investigation UI, and AMD LoRA recipes for the Halo host |
+| [jmjava/slm-kiln](https://github.com/jmjava/slm-kiln) | Kiln runtime for GGUFs this track (and embabel-slm) export — not a trainer |
 | [jmjava/weekend-lab-plan](https://github.com/jmjava/weekend-lab-plan) | Private machine plan (not a source copy) |
 
 Training stays out of `slm-setup`. Delivery back into the bridge waits until a later operator decision, same rule as `embabel-slm`.
