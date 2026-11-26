@@ -12,6 +12,12 @@ Drivine-domain track in the local coding SLM family.
 
 Training stays out of `slm-setup`. Delivery back into the bridge waits until a later operator decision, same rule as `embabel-slm`.
 
+## Paper
+
+Confirmatory **Part C** (Drivine) is pre-registered with Embabel **Part B** under the same arms S / M / L and configs A–D. Model tags are chosen on Embabel DEV only; this repo supplies corpus and the future executable harness. Normative protocol: [embabel-slm `docs/protocol/preregistration.md`](https://github.com/jmjava/embabel-slm/blob/main/docs/protocol/preregistration.md) (`study_id`: `two-domain-gap-closure-v1`).
+
+Work order matches Embabel: (1) score a clean official tag, (2) measure retrieval, (3) one **Drivine-only** LoRA for the gap retrieval did not close. `data/drivine_instruct.json` (100 pairs) is **training/DEV only**; it is excluded from the confirmatory holdout by the same near-duplicate rule and is not a scored benchmark.
+
 ## Order (do not invert)
 
 1. Curate and pin Drivine concepts + instruction pairs from [drivine.org](https://drivine.org/).
