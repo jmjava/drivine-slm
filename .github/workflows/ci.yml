@@ -1,0 +1,69 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  node:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Build
+        run: npm run build
+
+  data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Regenerate JSONL and assert clean tree
+        run: npm run export:jsonl && git diff --exit-code data/
+      - name: Parse JSON corpora
+        run: |
+          node -e "
+          const fs = require('fs');
+          const path = require('path');
+          for (const name of fs.readdirSync('data')) {
+            if (!name.endsWith('.json')) continue;
+            JSON.parse(fs.readFileSync(path.join('data', name), 'utf8'));
+          }
+          console.log('data/*.json parse ok');
+          "
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Byte-compile python package
+        run: python -m compileall -q python/drivine_lab python/train 2>/dev/null || python -m compileall -q python/drivine_lab
+      - name: Import lightweight modules
+        run: |
+          python - <<'PY'
+          import importlib.util
+          import sys
+          from pathlib import Path
+
+          root = Path("python")
+          sys.path.insert(0, str(root))
+          for mod in ("drivine_lab.paths", "drivine_lab.export_jsonl"):
+              importlib.import_module(mod)
+          print("import ok:", "drivine_lab.paths", "drivine_lab.export_jsonl")
+          PY
