@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start --port 3847",
     "lint": "eslint",
-    "export:jsonl": "node -e \"const fs=require('fs');const line=o=>JSON.stringify(o).replace(/\\\":\\\"/g,'\\\": \\\"').replace(/\\\",\\\"/g,'\\\", \\\"');const rows=JSON.parse(fs.readFileSync('data/drivine_instruct.json','utf8'));fs.writeFileSync('data/drivine_instruct.jsonl',rows.map(r=>line({instruction:r.instruction,response:r.response,topic:r.topic,id:r.id})).join('\\n')+'\\n');console.log('wrote',rows.length,'lines');\""
+    "export:jsonl": "node -e \"const fs=require('fs');const rows=JSON.parse(fs.readFileSync('data/drivine_instruct.json','utf8'));fs.writeFileSync('data/drivine_instruct.jsonl',rows.map(r=>JSON.stringify({instruction:r.instruction,response:r.response,topic:r.topic,id:r.id})).join('\\n')+'\\n');console.log('wrote',rows.length,'lines');\""
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

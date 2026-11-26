@@ -28,11 +28,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-python@v5
         with:
-          node-version: "20"
-      - name: Regenerate JSONL and assert clean tree
-        run: npm run export:jsonl && git diff --exit-code data/
+          python-version: "3.12"
+      - name: JSON and JSONL corpus consistency
+        run: python scripts/check_corpus.py --self-test && python scripts/check_corpus.py
       - name: Parse JSON corpora
         run: |
           node -e "
