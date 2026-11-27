@@ -101,7 +101,7 @@ def check(
 
 
 def run_self_test() -> list[str]:
-    """Prove the checker rejects a deliberate mismatch (temp files only)."""
+    """Verify the checker rejects a deliberate mismatch (temp files only)."""
     failures: list[str] = []
     try:
         json_rows = load_json_rows(DEFAULT_JSON)

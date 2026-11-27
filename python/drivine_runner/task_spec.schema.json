@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "drivine-slm/task_spec/v1",
+  "title": "Drivine pilot task spec v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "task_spec_version",
+    "task_id",
+    "domain",
+    "area",
+    "prompt",
+    "answer_language",
+    "expected_output_files",
+    "fixture_dir",
+    "oracle_argv",
+    "timeout_seconds",
+    "pins",
+    "checks"
+  ],
+  "properties": {
+    "task_spec_version": { "const": "1" },
+    "task_id": { "type": "string", "minLength": 1 },
+    "domain": { "const": "drivine" },
+    "area": {
+      "enum": ["generation", "repair", "query", "graph_rag", "integration"]
+    },
+    "prompt": { "type": "string", "minLength": 1 },
+    "answer_language": { "type": "string", "minLength": 1 },
+    "expected_output_files": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "fixture_dir": { "type": "string", "minLength": 1 },
+    "oracle_argv": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "timeout_seconds": { "type": "number", "exclusiveMinimum": 0 },
+    "pins": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["source", "package"],
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "package": { "type": "string", "minLength": 1 }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "path"],
+        "properties": {
+          "type": { "enum": ["file_equals", "file_sha256"] },
+          "path": { "type": "string", "minLength": 1 },
+          "expected_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "expected_content": { "type": "string" }
+        }
+      }
+    }
+  }
+}

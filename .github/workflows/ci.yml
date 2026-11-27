@@ -53,7 +53,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Byte-compile python package
-        run: python -m compileall -q python/drivine_lab python/train 2>/dev/null || python -m compileall -q python/drivine_lab
+        run: python -m compileall -q python/drivine_lab python/drivine_runner python/train 2>/dev/null || python -m compileall -q python/drivine_lab python/drivine_runner
       - name: Import lightweight modules
         run: |
           python - <<'PY'
@@ -63,7 +63,11 @@ jobs:
 
           root = Path("python")
           sys.path.insert(0, str(root))
-          for mod in ("drivine_lab.paths", "drivine_lab.export_jsonl"):
+          for mod in ("drivine_lab.paths", "drivine_lab.export_jsonl", "drivine_runner"):
               importlib.import_module(mod)
           print("import ok:", "drivine_lab.paths", "drivine_lab.export_jsonl")
           PY
+      - name: Drivine runner unit tests and self-test
+        run: |
+          PYTHONPATH=python python -m unittest discover -s tests -p 'test_drivine_runner.py' -v
+          PYTHONPATH=python python -m drivine_runner self-test

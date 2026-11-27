@@ -1,0 +1,17 @@
+{
+  "task_spec_version": "1",
+  "task_id": "pilot-timeout-001",
+  "domain": "drivine",
+  "area": "repair",
+  "prompt": "Stub task for timeout tests only.",
+  "answer_language": "text",
+  "expected_output_files": ["stub.txt"],
+  "fixture_dir": "fixture",
+  "oracle_argv": ["python3", "slow.py"],
+  "timeout_seconds": 0.2,
+  "pins": {
+    "source": "drivine-slm/benchmarks/pilot/pilot-timeout-001",
+    "package": "python-stdlib-pilot-v1"
+  },
+  "checks": []
+}
