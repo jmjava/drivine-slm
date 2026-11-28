@@ -1,0 +1,7 @@
+{
+  "people": [
+    {"name": "Amina", "address": "amina@example.com"},
+    {"name": "Boris", "address": "boris@example.com"},
+    {"name": "Chen", "address": null}
+  ]
+}

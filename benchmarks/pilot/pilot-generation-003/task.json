@@ -1,0 +1,23 @@
+{
+  "task_spec_version": "1",
+  "task_id": "pilot-generation-003",
+  "domain": "drivine",
+  "area": "generation",
+  "prompt": "Read id from drop.json and write answer.txt containing Cypher that matches that Person and detaches and deletes the node.",
+  "answer_language": "text",
+  "expected_output_files": ["answer.txt"],
+  "fixture_dir": "fixture",
+  "oracle_argv": ["python3", "oracle_check.py"],
+  "timeout_seconds": 10,
+  "pins": {
+    "source": "drivine-slm/benchmarks/pilot/pilot-generation-003",
+    "package": "python-stdlib-pilot-v1"
+  },
+  "checks": [
+    {
+      "type": "file_equals",
+      "path": "answer.txt",
+      "expected_content": "MATCH (p:Person {id: 7})\nDETACH DELETE p\n"
+    }
+  ]
+}

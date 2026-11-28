@@ -1,0 +1,23 @@
+{
+  "task_spec_version": "1",
+  "task_id": "pilot-repair-002",
+  "domain": "drivine",
+  "area": "repair",
+  "prompt": "Repair the Cypher query in broken.cypher. The KNOWS relationship should be outgoing. Use a directed relationship and write the repaired query to answer.txt.",
+  "answer_language": "text",
+  "expected_output_files": ["answer.txt"],
+  "fixture_dir": "fixture",
+  "oracle_argv": ["python3", "oracle_check.py"],
+  "timeout_seconds": 10,
+  "pins": {
+    "source": "drivine-slm/benchmarks/pilot/pilot-repair-002",
+    "package": "python-stdlib-pilot-v1"
+  },
+  "checks": [
+    {
+      "type": "file_equals",
+      "path": "answer.txt",
+      "expected_content": "MATCH (p:Person)-[r:KNOWS]->(f:Person)\nRETURN r\n"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "task_spec_version": "1",
+  "task_id": "pilot-query-004",
+  "domain": "drivine",
+  "area": "query",
+  "prompt": "Read the values array in nums.json and write answer.txt containing a read-only Cypher query that unwinds those numbers and returns their sum.",
+  "answer_language": "text",
+  "expected_output_files": ["answer.txt"],
+  "fixture_dir": "fixture",
+  "oracle_argv": ["python3", "oracle_check.py"],
+  "timeout_seconds": 10,
+  "pins": {
+    "source": "drivine-slm/benchmarks/pilot/pilot-query-004",
+    "package": "python-stdlib-pilot-v1"
+  },
+  "checks": [
+    {
+      "type": "file_equals",
+      "path": "answer.txt",
+      "expected_content": "UNWIND [2, 4, 6] AS n\nWITH n\nRETURN sum(n)\n"
+    }
+  ]
+}
